@@ -183,49 +183,131 @@ public:
 				else if (words.size() == 3)
 				{
 					file2 << to_string(LC) + " ";
-					// cout << LC << " ";
-					st_it si = t1.find_in_ST(words[0]);
-					mnem_it it;
-					reg_it it1;
-					if (si != t1.ST.end())
-					{
-						(*si).second = LC;
+//					// cout << LC << " ";
+//					st_it si = t1.find_in_ST(words[0]);
+//					mnem_it it;
+//					reg_it it1;
+//					if (si != t1.ST.end())
+//					{
+//						(*si).second = LC;
+//
+//						it = t1.find_in_mnemonic(words[1]);
+//						t1.print_in_mnemonic(it, file2);
+//
+//						string w = "(C," + words[2] + ") ";
+//						file2 << w;
+//						// cout << "(C," << words[2] << ")"<< " ";
+//					}
+//					else
+//					{
+//						it = t1.find_in_mnemonic(words[0]);
+//						t1.print_in_mnemonic(it, file2);
+//
+//						it1 = t1.find_in_reg(words[1]);
+//						if (it1 != t1.REG.end())
+//							t1.print_in_reg(it1, file2);
+//						else
+//						{
+//							it1 = t1.find_in_cond(words[1]);
+//							t1.print_in_reg(it1, file2);
+//						}
+//						it1=t1.find_in_reg(words[2]);
+//						if(it1!=t1.REG.end()){
+//							t1.print_in_reg(it1, file2);
+//						}
+//						else{
+//							si = t1.find_in_ST(words[2]);
+//							if (si == t1.ST.end())
+//							{
+//								t1.ST.push_back({words[2], 00});
+//								string w = "(S," + to_string(t1.ST.size() - 1) + ")" + " ";
+//								file2 << w;
+//								// cout << "(S," << t1.ST.size() - 1 << ")"<< " ";
+//							}
+//							else
+//							{
+//								string w = "(S," + to_string(si - t1.ST.begin()) + ")" + " ";
+//								file2 << w;
+//								// cout << "(S," << si - t1.ST.begin() << ")"<< " ";
+//							}
+//						}
+//
+//					}
 
-						it = t1.find_in_mnemonic(words[1]);
-						t1.print_in_mnemonic(it, file2);
-
-						string w = "(C," + words[2] + ") ";
+					mnem_it it = t1.find_in_mnemonic(words[1]);
+					st_it si;
+					if(it!=t1.OPTAB.end()){
+						if(words[1]=="EQU"){
+							string w;
+						si=t1.find_in_ST(words[2]);
+						st_it temp = t1.find_in_ST(words[0]);
+						if(temp!=t1.ST.end()){
+							(*temp).second = (*si).second;
+						 w = "(S," + to_string(si - t1.ST.begin()) + ")" + " ";
 						file2 << w;
-						// cout << "(C," << words[2] << ")"<< " ";
+						}
+						else{
+							t1.ST.push_back({words[0],(*si).second});
+						 w = "(S," + to_string(t1.ST.size() - 1) + ")" + " ";
+						file2 << w;
+						}
+						
+						t1.print_in_mnemonic(it,file2);
+
+
+						 w = "(S," + to_string(si - t1.ST.begin()) + ")" + " ";
+						file2 << w;
+						}
+						else{
+							si = t1.find_in_ST(words[0]);
+							if(si==t1.ST.end()){
+								t1.ST.push_back({words[0],LC});
+							}
+							else{
+								(*si).second = LC;
+							}
+
+							t1.print_in_mnemonic(it, file2);
+
+							string w = "(C," + words[2] + ") ";
+							file2 << w;
+						}
 					}
-					else
-					{
+					else{
+
 						it = t1.find_in_mnemonic(words[0]);
 						t1.print_in_mnemonic(it, file2);
 
-						it1 = t1.find_in_reg(words[1]);
-						if (it1 != t1.REG.end())
-							t1.print_in_reg(it1, file2);
+
+						reg_it it2 = t1.find_in_reg(words[1]);
+						if (it2 != t1.REG.end())
+							t1.print_in_reg(it2, file2);
 						else
 						{
-							it1 = t1.find_in_cond(words[1]);
-							t1.print_in_reg(it1, file2);
+							it2 = t1.find_in_cond(words[1]);
+							t1.print_in_reg(it2, file2);
 						}
 
-						si = t1.find_in_ST(words[2]);
-						if (si == t1.ST.end())
-						{
-							t1.ST.push_back({words[2], 00});
-							string w = "(S," + to_string(t1.ST.size() - 1) + ")" + " ";
-							file2 << w;
-							// cout << "(S," << t1.ST.size() - 1 << ")"<< " ";
+						it2=t1.find_in_reg(words[2]);
+						if(it2!=t1.REG.end()){
+							t1.print_in_reg(it2, file2);
 						}
-						else
-						{
-							string w = "(S," + to_string(si - t1.ST.begin()) + ")" + " ";
-							file2 << w;
-							// cout << "(S," << si - t1.ST.begin() << ")"<< " ";
-						}
+						else{
+							si = t1.find_in_ST(words[2]);
+							if (si == t1.ST.end())
+							{
+								t1.ST.push_back({words[2], 00});
+								string w = "(S," + to_string(t1.ST.size() - 1) + ")" + " ";
+								file2 << w;
+								// cout << "(S," << t1.ST.size() - 1 << ")"<< " ";
+							}
+							else
+							{
+								string w = "(S," + to_string(si - t1.ST.begin()) + ")" + " ";
+								file2 << w;
+								// cout << "(S," << si - t1.ST.begin() << ")"<< " ";
+							}
+					}
 					}
 					file2 << endl;
 					// cout<<endl;
@@ -240,6 +322,17 @@ public:
 							  << " ";
 						// cout << "(C," << words[1] << ")"<< " ";
 						LC = stoi(words[1]) - 1;
+					}
+					else if(words[0]=="ORIGIN"){
+						file2<<LC<<" ";
+						t1.print_in_mnemonic(it,file2);
+
+						st_it it1 = t1.find_in_ST(words[1]);
+						LC = (*it1).second-1;
+
+						string w = "(S," + to_string(it1 - t1.ST.begin()) + ")" + " ";
+						file2 << w;
+
 					}
 					else
 					{
