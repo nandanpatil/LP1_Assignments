@@ -19,6 +19,8 @@ class Tables
 	unordered_map<string, int> REG;
 	unordered_map<string, int> CONDCS;
 	vector<pair<string, int>> ST;
+	vector<pair<string,int>>LITTAB;
+	vector<pair<int,int>>POOLTAB;
 
 	Tables()
 	{
@@ -53,6 +55,9 @@ class Tables
 		CONDCS["GE"] = 5;
 		CONDCS["ANY"] = 6;
 		ST.push_back({"NULL", -99});
+		LITTAB.push_back({"NULL",-99});
+		POOLTAB.push_back({-99,-99});
+
 	}
 
 	void show()
@@ -109,6 +114,7 @@ class Pass1
 	Tables t1;
 	fstream file;
 	fstream file2;
+	bool nextPool = 1;
 
 public:
 	Pass1(string f1, string f2)
@@ -251,7 +257,7 @@ public:
 						 w = "(S," + to_string(t1.ST.size() - 1) + ")" + " ";
 						file2 << w;
 						}
-						
+
 						t1.print_in_mnemonic(it,file2);
 
 
@@ -287,7 +293,22 @@ public:
 							it2 = t1.find_in_cond(words[1]);
 							t1.print_in_reg(it2, file2);
 						}
-
+						string temp = words[2];
+						if(temp[0]=='='){
+							t1.LITTAB.push_back({temp,-1});
+							temp = "(L,"+to_string(t1.LITTAB.size()-1)+")";
+							file2<<temp;
+							if(nextPool){
+								if(t1.POOLTAB.size()==1){
+									t1.POOLTAB.push_back({1,1});
+								}
+								else{
+									t1.POOLTAB.push_back({t1.POOLTAB.size(),t1.LITTAB.size()-1});
+								}
+								nextPool=0;
+							}
+						}
+						else{
 						it2=t1.find_in_reg(words[2]);
 						if(it2!=t1.REG.end()){
 							t1.print_in_reg(it2, file2);
@@ -308,6 +329,7 @@ public:
 								// cout << "(S," << si - t1.ST.begin() << ")"<< " ";
 							}
 					}
+						}
 					}
 					file2 << endl;
 					// cout<<endl;
@@ -362,7 +384,34 @@ public:
 				{
 					if (words[0] != "END")
 					{
+
 						file2 << LC << " ";
+					}
+					if(words[0]=="LTORG"){
+							nextPool=1;
+							if(t1.POOLTAB.size()==2){
+								for(int i=1;i<t1.LITTAB.size();i++){
+									t1.LITTAB[i].second=LC;
+									LC++;
+								}
+								LC--;
+						}
+						else{
+							int start=t1.POOLTAB[t1.POOLTAB.size()-1].second;
+							for(int i=start;i<t1.LITTAB.size();i++){
+								t1.LITTAB[i].second=LC;
+								LC++;
+							}
+							LC--;
+						}
+					}
+
+					if(words[0]=="END"){
+						int start=t1.POOLTAB[t1.POOLTAB.size()-1].second;
+						for(int i=start;i<t1.LITTAB.size();i++){
+							t1.LITTAB[i].second=LC;
+							LC++;
+						}
 					}
 					// cout<<LC<<" ";}
 					mnem_it i = t1.find_in_mnemonic(words[0]);
@@ -383,11 +432,32 @@ public:
 			cout << i << setw(10) << t1.ST[i].first << setw(10) << t1.ST[i].second << endl;
 		}
 	}
+
+	void showLiteralTable(){
+		cout << "Value" << setw(10) << "Address"<< endl;
+		for (int i = 1; i < t1.LITTAB.size(); i++)
+		{
+			cout << i << setw(10) << t1.LITTAB[i].first << setw(10) << t1.LITTAB[i].second << endl;
+		}
+	}
+
+	void showPoolTable(){
+		cout << "POOL" << setw(10) << "START"<< endl;
+		for (int i = 1; i < t1.POOLTAB.size(); i++)
+		{
+			cout<< t1.POOLTAB[i].first << setw(10) << t1.POOLTAB[i].second << endl;
+		}
+
+	}
 };
 
 int main()
 {
-	Pass1 p("code.txt", "I_code.txt");
+	Pass1 p("/home/pict/Desktop/31460/LP_2/src/code.txt", "I_code.txt");
 	p.createIntermediateCode();
 	p.showST();
+	cout<<endl;
+	p.showLiteralTable();
+	cout<<endl;
+	p.showPoolTable();
 }
